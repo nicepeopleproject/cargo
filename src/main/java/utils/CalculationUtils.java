@@ -39,10 +39,12 @@ public class CalculationUtils {
         double srParam = props.get(1);
 
 
-        double maxiBoxi = 0.0;
+        double miniBoxi = 0.0;
         double curSrParam = srParam;
+        double curMinParam = minParam;
+        double curMaxParam = maxParam;
 
-        // сортировка боксов в boxes по их максимальному параметру - глубине
+        // сортировка боксов в boxes по их минимальному параметру - глубине
         for(int b = 0; b < boxes.size(); b++)
         {
             Box curBox = boxes.get(b);
@@ -66,11 +68,11 @@ public class CalculationUtils {
                     }
                 }
 
-                if(curBoxParam.get(1) <= curSrParam)
+                if(curBoxParam.get(-1) <= maxParam & curBoxParam.get(1) <= srParam & curBoxParam.get(0) <= minParam)
                 {
-                    if(curBoxParam.get(-1) >= maxiBoxi)
+                    if(curBoxParam.get(0) > miniBoxi)
                     {
-                        maxiBoxi = curBoxParam.get(-1);
+                        miniBoxi = curBoxParam.get(0);
                         boxes.remove(b);
                         boxes.add(0, curBox);
                     }
@@ -79,8 +81,6 @@ public class CalculationUtils {
                 {
                     return null;
                 }
-
-
             }
             else
             {
@@ -93,14 +93,14 @@ public class CalculationUtils {
         // параметры текущего слоя коробок в кузове
         double potolok = 0.0;
         double pol = 0.0;
-        double curMinParam = minParam;
-        double curMaxParam = maxParam;
+        double stena_left = 0.0;
+        double stena_right = 0.0;
+
 
         // расстоновка коробок по слоям
         for(int b = 0; b < boxes.size(); b++)
         {
             Box curBox = boxes.get(b);
-            double boxVolume = curBox.getLength() * curBox.getWidth() * curBox.getHeight();
             double minCurBoxParam = 1000000000000.0000000;
 
             List<Double> scurBoxParam = new ArrayList<Double>(3);
@@ -119,30 +119,45 @@ public class CalculationUtils {
                 }
             }
 
-            if(scurBoxParam.get(-1) <= curMaxParam)
+            if (scurBoxParam.get(-1) <= curMaxParam)
             {
-                if (scurBoxParam.get(0) <= curMinParam) // заполнение слоя
+                if (scurBoxParam.get(1) <= curSrParam)
                 {
-                    curMinParam -= scurBoxParam.get(0);
-                    if (potolok < (scurBoxParam.get(-1) + pol))
+                    if (scurBoxParam.get(0) <= curMinParam) // заполнение слоя
                     {
-                        potolok = scurBoxParam.get(-1) + pol;
+                        curMinParam -= scurBoxParam.get(0);
+                        if (potolok < (scurBoxParam.get(1) + pol)) {
+                            potolok = scurBoxParam.get(1) + pol;
+                        }
+
+                        if (stena_right < (scurBoxParam.get(-1) + stena_left)) {
+                            stena_right = scurBoxParam.get(-1) + stena_left;
+                        }
+                    }
+                    else // переход на следующий слой
+                    {
+                        curMinParam = minParam;
+                        curSrParam -= potolok;
+                        pol = potolok;
                     }
                 }
-                else // переход на следующий слой
+                else // переход к следующей группе слоев
                 {
                     curMinParam = minParam;
-                    curMaxParam -= potolok;
-                    pol = potolok;
+                    curSrParam = srParam;
+                    curMaxParam -= stena_right;
+                    stena_left = stena_right;
+                    pol = 0.0;
+                    potolok = 0.0;
                 }
             }
             else
             {
-                return null;
+                curMaxParam -= stena_right;
+                break;
             }
-
         }
-        curMaxParam -= potolok;
+
         BoxParams res = new BoxParams(minParam, srParam, curMaxParam);
         return res;
     }
