@@ -176,7 +176,24 @@ public class CalculationUtils {
     }
 
     public static Truck findBestTruckForTransportation(List<Truck> trucks, Box box, Double kmDistance){
-        //todo выбирает наиболее выгодный грузовик из списка для доставки товара
-        return null;
+        double maxi_sum = 0.000;
+        int maxi_tr_ID = 0;
+        for (int tr = 0; tr < trucks.size(); tr++ )
+        {
+            Truck cur_truck = trucks.get(tr);
+            double sumi = 0.0;
+            double kg = box.getDensity() * box.getHeight() * box.getLength() * box.getWidth();
+            sumi += cur_truck.getCostOfCall();
+            sumi += kg * cur_truck.getCostOfLoadingPerKilo();
+            sumi += kg * cur_truck.getCostOfUnloadingPerKilogram();
+            sumi += kmDistance * cur_truck.getPricePerKilometer();
+
+            if(sumi > maxi_sum)
+            {
+                maxi_tr_ID = tr;
+                maxi_sum = sumi;
+            }
+        }
+        return trucks.get(maxi_tr_ID);
     }
 }
