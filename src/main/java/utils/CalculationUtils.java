@@ -165,14 +165,46 @@ public class CalculationUtils {
     public static boolean hasEnoughSpace(Box box, BoxParams boxParams){
         double bodyVolume = boxParams.getHeight() * boxParams.getWidth() * boxParams.getLength();
         double boxVolume = box.getLength() * box.getHeight() * box.getWidth();
+
+        double maxiBox = 0.0;
+        double maxiParamBox = 0.0;
+
+        List<Double> bodyParams = new ArrayList<>(3);
+        bodyParams.add(boxParams.getLength());
+        bodyParams.add(boxParams.getWidth());
+        bodyParams.add(boxParams.getHeight());
+
+        List<Double> boksParams = new ArrayList<>(3);
+        boksParams.add(box.getLength());
+        boksParams.add(box.getWidth());
+        boksParams.add(box.getHeight());
+
+        for(int b = 0; b < 3; b++ )
+        {
+            if(boksParams.get(b) > maxiBox)
+            {
+                maxiBox = boksParams.get(b);
+                boksParams.remove(b);
+                boksParams.add(0,maxiBox);
+            }
+
+            if(bodyParams.get(b) > maxiParamBox)
+            {
+                maxiParamBox = bodyParams.get(b);
+                bodyParams.remove(b);
+                bodyParams.add(0, maxiParamBox);
+            }
+        }
+
         if (boxVolume <= bodyVolume)
         {
-            return true;
+            if (boksParams.get(0) <= bodyParams.get(0) & boksParams.get(1) <= bodyParams.get(1) & boksParams.get(2) <= bodyParams.get(2))
+            {
+                return true;
+            }
         }
-        else
-        {
-            return false;
-        }
+
+    return false;
     }
 
     public static Truck findBestTruckForTransportation(List<Truck> trucks, Box box, Double kmDistance){
