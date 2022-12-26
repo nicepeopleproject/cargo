@@ -16,23 +16,30 @@ public class CalculationUtils {
         props.add(params.getWidth());
         props.add(params.getLength());
 
-        double minParam = 10000000000000000.0000000;
         double bodyVolume = 1.0;
 
-        // устанавливаю минимальный параметр (длина) исходного кузова и его объем
         for(int i = 0; i < 3; i++)
         {
             bodyVolume *= props.get(i);
-            if(props.get(i) < minParam )
+            int minIndex = i;
+            for (int j = i + 1; j < props.size(); j++)
             {
-                minParam = props.get(i);
-                props.remove(i);
-                props.add(0, minParam);
-
+                if(props.get(j) < props.get(minIndex))
+                {
+                    minIndex = j;
+                }
             }
+
+            double temp = props.get(i);
+            props.remove(i);
+            props.add(i, props.get(minIndex));
+            props.remove(minIndex);
+            props.add(minIndex, temp);
+
 
         }
 
+        double minParam = props.get(0);
         // максимальный параметр - глубина
         double maxParam = props.get(-1);
         // средний параметр - высота
@@ -49,7 +56,6 @@ public class CalculationUtils {
         {
             Box curBox = boxes.get(b);
             double boxVolume = curBox.getLength() * curBox.getWidth() * curBox.getHeight();
-            double minCurBoxParam = 1000000000000.0000000;
             if(boxVolume <= bodyVolume)
             {
                 List<Double> curBoxParam = new ArrayList<Double>(3);
@@ -60,12 +66,20 @@ public class CalculationUtils {
                 // сортировка параметров конкретной коробки
                 for(int a = 0; a < 3; a++)
                 {
-                    if(curBoxParam.get(a) < minCurBoxParam)
+                    int minIndex = a;
+                    for (int j = a + 1; j < curBoxParam.size(); j++)
                     {
-                        minCurBoxParam = curBoxParam.get(a);
-                        curBoxParam.remove(a);
-                        curBoxParam.add(0, minCurBoxParam);
+                        if(curBoxParam.get(j) < curBoxParam.get(minIndex))
+                        {
+                            minIndex = j;
+                        }
                     }
+
+                    double temp = curBoxParam.get(a);
+                    curBoxParam.remove(a);
+                    curBoxParam.add(a, curBoxParam.get(minIndex));
+                    curBoxParam.remove(minIndex);
+                    curBoxParam.add(minIndex, temp);
                 }
 
                 if(curBoxParam.get(-1) <= maxParam & curBoxParam.get(1) <= srParam & curBoxParam.get(0) <= minParam)
@@ -111,12 +125,20 @@ public class CalculationUtils {
             // сортировка параметров конкретной коробки
             for(int a = 0; a < 3; a++)
             {
-                if(scurBoxParam.get(a) < minCurBoxParam)
+                int minIndex = a;
+                for (int j = a + 1; j < scurBoxParam.size(); j++)
                 {
-                    minCurBoxParam = scurBoxParam.get(a);
-                    scurBoxParam.remove(a);
-                    scurBoxParam.add(0, minCurBoxParam);
+                    if(scurBoxParam.get(j) < scurBoxParam.get(minIndex))
+                    {
+                        minIndex = j;
+                    }
                 }
+
+                double temp = scurBoxParam.get(a);
+                scurBoxParam.remove(a);
+                scurBoxParam.add(a, scurBoxParam.get(minIndex));
+                scurBoxParam.remove(minIndex);
+                scurBoxParam.add(minIndex, temp);
             }
 
             if (scurBoxParam.get(-1) <= curMaxParam)
@@ -166,9 +188,6 @@ public class CalculationUtils {
         double bodyVolume = boxParams.getHeight() * boxParams.getWidth() * boxParams.getLength();
         double boxVolume = box.getLength() * box.getHeight() * box.getWidth();
 
-        double maxiBox = 0.0;
-        double maxiParamBox = 0.0;
-
         List<Double> bodyParams = new ArrayList<>(3);
         bodyParams.add(boxParams.getLength());
         bodyParams.add(boxParams.getWidth());
@@ -181,19 +200,37 @@ public class CalculationUtils {
 
         for(int b = 0; b < 3; b++ )
         {
-            if(boksParams.get(b) > maxiBox)
+            // cортировка параметров коробки
+            int minIndex = b;
+            for (int j = b + 1; j < boksParams.size(); j++)
             {
-                maxiBox = boksParams.get(b);
-                boksParams.remove(b);
-                boksParams.add(0,maxiBox);
+                if(boksParams.get(j) < boksParams.get(minIndex))
+                {
+                    minIndex = j;
+                }
             }
 
-            if(bodyParams.get(b) > maxiParamBox)
+            double temp = boksParams.get(b);
+            boksParams.remove(b);
+            boksParams.add(b, boksParams.get(minIndex));
+            boksParams.remove(minIndex);
+            boksParams.add(minIndex, temp);
+
+            //сортировка параметров кузова
+            int minsIndex = b;
+            for (int j = b + 1; j < bodyParams.size(); j++)
             {
-                maxiParamBox = bodyParams.get(b);
-                bodyParams.remove(b);
-                bodyParams.add(0, maxiParamBox);
+                if(bodyParams.get(j) < bodyParams.get(minsIndex))
+                {
+                    minsIndex = j;
+                }
             }
+
+            double temp1 = bodyParams.get(b);
+            bodyParams.remove(b);
+            bodyParams.add(b, bodyParams.get(minIndex));
+            bodyParams.remove(minsIndex);
+            bodyParams.add(minsIndex, temp1);
         }
 
         if (boxVolume <= bodyVolume)
