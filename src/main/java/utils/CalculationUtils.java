@@ -11,37 +11,19 @@ public class CalculationUtils {
         BoxParams params = truck.getMaxBoxParams();
         List<Box> boxes = truck.getBoxList();
 
-        List<Double> props = new ArrayList<Double>();
+        List<Double> props = new ArrayList<>(3);
         props.add(params.getHeight());
         props.add(params.getWidth());
         props.add(params.getLength());
 
-        double bodyVolume = 1.0;
+        double bodyVolume = params.getHeight() * params.getLength() * params.getWidth();
 
-        for(int i = 0; i < 3; i++)
-        {
-            bodyVolume *= props.get(i);
-            int minIndex = i;
-            for (int j = i + 1; j < props.size(); j++)
-            {
-                if(props.get(j) < props.get(minIndex))
-                {
-                    minIndex = j;
-                }
-            }
+        Collections.sort(props);
 
-            double temp = props.get(i);
-            props.remove(i);
-            props.add(i, props.get(minIndex));
-            props.remove(minIndex);
-            props.add(minIndex, temp);
-
-
-        }
 
         double minParam = props.get(0);
         // максимальный параметр - глубина
-        double maxParam = props.get(-1);
+        double maxParam = props.get(2);
         // средний параметр - высота
         double srParam = props.get(1);
 
@@ -51,6 +33,7 @@ public class CalculationUtils {
         double curMinParam = minParam;
         double curMaxParam = maxParam;
 
+
         // сортировка боксов в boxes по их минимальному параметру - глубине
         for(int b = 0; b < boxes.size(); b++)
         {
@@ -58,31 +41,15 @@ public class CalculationUtils {
             double boxVolume = curBox.getLength() * curBox.getWidth() * curBox.getHeight();
             if(boxVolume <= bodyVolume)
             {
-                List<Double> curBoxParam = new ArrayList<Double>(3);
+                List<Double> curBoxParam = new ArrayList<>(3);
                 curBoxParam.add(curBox.getHeight());
                 curBoxParam.add(curBox.getWidth());
                 curBoxParam.add(curBox.getLength());
 
                 // сортировка параметров конкретной коробки
-                for(int a = 0; a < 3; a++)
-                {
-                    int minIndex = a;
-                    for (int j = a + 1; j < curBoxParam.size(); j++)
-                    {
-                        if(curBoxParam.get(j) < curBoxParam.get(minIndex))
-                        {
-                            minIndex = j;
-                        }
-                    }
+                Collections.sort(curBoxParam);
 
-                    double temp = curBoxParam.get(a);
-                    curBoxParam.remove(a);
-                    curBoxParam.add(a, curBoxParam.get(minIndex));
-                    curBoxParam.remove(minIndex);
-                    curBoxParam.add(minIndex, temp);
-                }
-
-                if(curBoxParam.get(-1) <= maxParam & curBoxParam.get(1) <= srParam & curBoxParam.get(0) <= minParam)
+                if(curBoxParam.get(2) <= maxParam & curBoxParam.get(1) <= srParam & curBoxParam.get(0) <= minParam)
                 {
                     if(curBoxParam.get(0) > miniBoxi)
                     {
@@ -112,39 +79,18 @@ public class CalculationUtils {
 
 
         // расстоновка коробок по слоям
-        for(int b = 0; b < boxes.size(); b++)
-        {
-            Box curBox = boxes.get(b);
-            double minCurBoxParam = 1000000000000.0000000;
+        for (Box curBox : boxes) {
 
-            List<Double> scurBoxParam = new ArrayList<Double>(3);
+            List<Double> scurBoxParam = new ArrayList<>(3);
             scurBoxParam.add(curBox.getHeight());
             scurBoxParam.add(curBox.getWidth());
             scurBoxParam.add(curBox.getLength());
 
             // сортировка параметров конкретной коробки
-            for(int a = 0; a < 3; a++)
-            {
-                int minIndex = a;
-                for (int j = a + 1; j < scurBoxParam.size(); j++)
-                {
-                    if(scurBoxParam.get(j) < scurBoxParam.get(minIndex))
-                    {
-                        minIndex = j;
-                    }
-                }
+            Collections.sort(scurBoxParam);
 
-                double temp = scurBoxParam.get(a);
-                scurBoxParam.remove(a);
-                scurBoxParam.add(a, scurBoxParam.get(minIndex));
-                scurBoxParam.remove(minIndex);
-                scurBoxParam.add(minIndex, temp);
-            }
-
-            if (scurBoxParam.get(-1) <= curMaxParam)
-            {
-                if (scurBoxParam.get(1) <= curSrParam)
-                {
+            if (scurBoxParam.get(2) <= curMaxParam) {
+                if (scurBoxParam.get(1) <= curSrParam) {
                     if (scurBoxParam.get(0) <= curMinParam) // заполнение слоя
                     {
                         curMinParam -= scurBoxParam.get(0);
@@ -152,18 +98,16 @@ public class CalculationUtils {
                             potolok = scurBoxParam.get(1) + pol;
                         }
 
-                        if (stena_right < (scurBoxParam.get(-1) + stena_left)) {
-                            stena_right = scurBoxParam.get(-1) + stena_left;
+                        if (stena_right < (scurBoxParam.get(2) + stena_left)) {
+                            stena_right = scurBoxParam.get(2) + stena_left;
                         }
-                    }
-                    else // переход на следующий слой
+                    } else // переход на следующий слой
                     {
                         curMinParam = minParam;
                         curSrParam -= potolok;
                         pol = potolok;
                     }
-                }
-                else // переход к следующей группе слоев
+                } else // переход к следующей группе слоев
                 {
                     curMinParam = minParam;
                     curSrParam = srParam;
@@ -172,16 +116,13 @@ public class CalculationUtils {
                     pol = 0.0;
                     potolok = 0.0;
                 }
-            }
-            else
-            {
+            } else {
                 curMaxParam -= stena_right;
                 break;
             }
         }
 
-        BoxParams res = new BoxParams(minParam, srParam, curMaxParam);
-        return res;
+        return new BoxParams(minParam, srParam, curMaxParam);
     }
 
     public static boolean hasEnoughSpace(Box box, BoxParams boxParams){
@@ -198,47 +139,16 @@ public class CalculationUtils {
         boksParams.add(box.getWidth());
         boksParams.add(box.getHeight());
 
-        for(int b = 0; b < 3; b++ )
-        {
-            // cортировка параметров коробки
-            int minIndex = b;
-            for (int j = b + 1; j < boksParams.size(); j++)
-            {
-                if(boksParams.get(j) < boksParams.get(minIndex))
-                {
-                    minIndex = j;
-                }
-            }
 
-            double temp = boksParams.get(b);
-            boksParams.remove(b);
-            boksParams.add(b, boksParams.get(minIndex));
-            boksParams.remove(minIndex);
-            boksParams.add(minIndex, temp);
+        // cортировка параметров коробки
+        Collections.sort(boksParams);
 
-            //сортировка параметров кузова
-            int minsIndex = b;
-            for (int j = b + 1; j < bodyParams.size(); j++)
-            {
-                if(bodyParams.get(j) < bodyParams.get(minsIndex))
-                {
-                    minsIndex = j;
-                }
-            }
-
-            double temp1 = bodyParams.get(b);
-            bodyParams.remove(b);
-            bodyParams.add(b, bodyParams.get(minIndex));
-            bodyParams.remove(minsIndex);
-            bodyParams.add(minsIndex, temp1);
-        }
+        //сортировка параметров кузова
+        Collections.sort(bodyParams);
 
         if (boxVolume <= bodyVolume)
         {
-            if (boksParams.get(0) <= bodyParams.get(0) & boksParams.get(1) <= bodyParams.get(1) & boksParams.get(2) <= bodyParams.get(2))
-            {
-                return true;
-            }
+            return boksParams.get(0) <= bodyParams.get(0) & boksParams.get(1) <= bodyParams.get(1) & boksParams.get(2) <= bodyParams.get(2);
         }
 
     return false;
